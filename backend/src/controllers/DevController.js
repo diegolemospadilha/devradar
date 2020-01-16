@@ -37,6 +37,6 @@ module.exports = {
       });
     }
 
-    return response.status(201).json(dev);
+    return response.json(dev);
   }
 };
