@@ -14,15 +14,18 @@ import {
 } from "react-native";
 
 import api from "../services/api";
+import { connect, disconnect, subscribeToNewDevs } from "../services/socket";
 
 import { MaterialIcons } from "@expo/vector-icons";
-import Axios from "axios";
 
 function Main({ navigation }) {
   const [currentRegion, setCurrentRegion] = useState(null);
   const [devs, setDevs] = useState([]);
   const [techs, setTechs] = useState("");
 
+  useEffect(() => {
+    subscribeToNewDevs(dev => setDevs([...devs, dev]));
+  }, [devs]);
   useEffect(() => {
     async function loadInitialPosition() {
       const { granted } = await requestPermissionsAsync();
@@ -45,6 +48,12 @@ function Main({ navigation }) {
     loadInitialPosition();
   }, []);
 
+  function setupWebsocket() {
+    disconnect();
+    const { latitude, longitude } = currentRegion;
+    connect(latitude, longitude, techs);
+  }
+
   async function loadDevs() {
     const { latitude, longitude } = currentRegion;
 
@@ -57,7 +66,7 @@ function Main({ navigation }) {
     });
 
     setDevs(githubResponse.data);
-    console.log("devs", devs);
+    setupWebsocket();
   }
 
   async function handleRegionChanged(region) {
